@@ -15,7 +15,7 @@ from helper_functions import *
 DATA_DIR = "./"
 
 trip_data_cols = ['hack_license', 'pickup_datetime','dropoff_datetime','pickup_longitude', 'pickup_latitude', 'dropoff_longitude', 'dropoff_latitude','trip_time_in_secs','trip_distance']
-trip_fare_cols = [' hack_license',' pickup_datetime', ' fare_amount', ' tip_amount']
+trip_fare_cols = [' hack_license',' pickup_datetime', ' fare_amount', ' tip_amount', 'tolls_amount']
 
 
 ##############################################
@@ -84,7 +84,7 @@ def process_taxi_data(i):
 
 	##############################################
 	#Add Profit columns
-	rides['profit'] = rides['fare_amount'] + rides['tip_amount'] - 3.6*rides.trip_distance/29.0 #$3.60/Gallon, 29 MPG
+	rides['profit'] = rides['fare_amount'] + rides['tip_amount'] - 3.6*rides.trip_distance/29.0 - rides['tolls_amount']#$3.60/Gallon, 29 MPG
 
 	print("Numer of rows: %d"%len(rides.index))
 	return rides
@@ -199,14 +199,18 @@ def add_pos_column(rides, delete_old_columns = False, num_digits=3, multiplier=1
 	rides['pos'] = [str(z) for z in zip(rides_rounded_coords.pickup_longitude.apply(lambda z: round_string%z), 
 						rides_rounded_coords.pickup_latitude.apply(lambda z: round_string%z))]
 
-	rides.loc[:,('pos')] = rides.pos.apply(lambda s: s.replace("\'",""))
+
+	rides.loc[:,'pos'] = rides.pos.apply(lambda s: s.replace("\'",""))
 
 	if delete_old_columns:
 		del rides['pickup_latitude']
 		del rides['pickup_longitude']
 
 	#rides.loc[:,('pos')] = rides.pos.apply(lambda s: s.replace("\'",""))
+	rides = rides[rides.pos != "(0.0000, 0.0000)"]
 	rides = rides[rides.pos != "(0.000, 0.000)"]
+	rides = rides[rides.pos != "(0.00, 0.00)"]
+	rides = rides[rides.pos != "(0.0, 0.0)"]
 
 	return rides
 
@@ -219,14 +223,19 @@ def add_dropoff_pos_column(rides, delete_old_columns = False, num_digits=3, mult
 	rides['dropoff_pos'] = [str(z) for z in zip(rides_rounded_coords.dropoff_longitude.apply(lambda z: round_string%z), 
 						rides_rounded_coords.dropoff_latitude.apply(lambda z: round_string%z))]
 
-	rides.loc[:,('dropoff_pos')] = rides.dropoff_pos.apply(lambda s: s.replace("\'",""))
-	
+	rides.loc[:,'dropoff_pos'] = rides.dropoff_pos.apply(lambda s: s.replace("\'",""))
+
 	if delete_old_columns:
 		del rides['dropoff_latitude']
 		del rides['dropoff_longitude']
 
 	#rides.loc[:,('pos')] = rides.pos.apply(lambda s: s.replace("\'",""))
+	rides = rides[rides.dropoff_pos != "(0.0000, 0.0000)"]
 	rides = rides[rides.dropoff_pos != "(0.000, 0.000)"]
+	rides = rides[rides.dropoff_pos != "(0.00, 0.00)"]
+	rides = rides[rides.dropoff_pos != "(0.0, 0.0)"]
+
+
 	return rides
 
 def filter_weekday_mornings(X):
@@ -263,6 +272,23 @@ def round_gps_coordinates(rides, num_digits, multiplier, type="pickup"):
 
 	return rides
 
+def calculate_trip_distances(rides):
+	"""
+	Determine the distance between two points, according to taxi-drivers.
+
+	To determine the distance between two points, use this
+	taxi_distance.loc[["(-71.31, 41.50)","(-71.30, 41.50)"]]['trip_distance'].values[0]
+
+	or to determine time use this
+
+	taxi_distance.loc[["(-71.31, 41.50)","(-71.30, 41.50)"]]['trip_time_in_secs'].values[0]	"""
+
+	print "Calculating taxi distance...",
+	taxi_distance = rides[['pos','dropoff_pos', 'profit','trip_distance','trip_time_in_secs','tolls_amount']].groupby(['pos','dropoff_pos']).mean()
+	taxi_distance.dropna(inplace=True)
+	print "done."
+	return taxi_distance
+
 if __name__ == "__main__":
 
 	rides_list = []
@@ -288,5 +314,8 @@ if __name__ == "__main__":
 	rides = pd.concat(rides_list)
 	rides.to_csv("rides.csv")
 
-	wages = pd.concat(wages_list)
-	wages.to_csv("wages.csv")
+	taxi_distance = calculate_trip_distances(rides)
+	taxi_distance.to_csv("taxi_distance.csv")
+
+	#wages = pd.concat(wages_list)
+	#wages.to_csv("wages.csv")
