@@ -20,3 +20,7 @@ for i in `seq 1 10`;
 do 
    wget https://nyctaxitrips.blob.core.windows.net/data/trip_fare_$i.csv.zip ; 
 done
+
+### Pre process data
+
+We analyze taxi rides that occur betwen 7 and 10am on weekday mornings. The script pre_process.py will filter for these rides, as well as clean the data, add columns for profit, idle time by driver, and calculate hourly wage.
