@@ -298,7 +298,6 @@ if __name__ == "__main__":
 		rides = process_taxi_data(i)
 		rides = remove_rows_with_bad_gps(rides)
 		rides = filter_weekday_mornings(rides)
-		rides = cleanup_column_names(rides)
 		rides = add_pos_column(rides, num_digits=2)
 		rides = add_dropoff_pos_column(rides, num_digits=2)
 
