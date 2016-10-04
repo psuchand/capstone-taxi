@@ -97,6 +97,13 @@ def working_column_names(name,desired_names):
 	assert len(L) == len(desired_names), "Error! Desired column names not available: " + str(L)
 	return L
 
+def remove_rows_with_bad_gps(rides):
+	print "Removing rows with bad gps...",
+	rides = rides[(rides.pickup_longitude < -71) & (rides.pickup_longitude > -75) & (rides.pickup_latitude > 38) & (rides.pickup_latitude < 42)]
+	rides = rides[(rides.dropoff_longitude < -71) & (rides.dropoff_longitude > -75) & (rides.dropoff_latitude > 38) & (rides.dropoff_latitude < 42)]
+	print "done."
+	return rides
+
 def filter_data_to_region(rides):
 	"""
 	Filter data to lie within a certain region.
@@ -213,6 +220,7 @@ def add_dropoff_pos_column(rides, delete_old_columns = False, num_digits=3, mult
 						rides_rounded_coords.dropoff_latitude.apply(lambda z: round_string%z))]
 
 	rides.loc[:,('dropoff_pos')] = rides.dropoff_pos.apply(lambda s: s.replace("\'",""))
+	
 	if delete_old_columns:
 		del rides['dropoff_latitude']
 		del rides['dropoff_longitude']
@@ -262,6 +270,7 @@ if __name__ == "__main__":
 
 	for i in [1]:
 		rides = process_taxi_data(i)
+		rides = remove_rows_with_bad_gps(rides)
 		rides = filter_weekday_mornings(rides)
 		rides = cleanup_column_names(rides)
 		rides = add_pos_column(rides, num_digits=2)
