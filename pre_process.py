@@ -86,6 +86,7 @@ def process_taxi_data(i):
 	#Add Profit columns
 	rides['profit'] = rides['fare_amount'] + rides['tip_amount'] - 3.6*rides.trip_distance/29.0 - rides['tolls_amount']#$3.60/Gallon, 29 MPG
 
+	rides = remove_trips_invalid_profit(rides)
 	print("Numer of rows: %d"%len(rides.index))
 	return rides
 
@@ -103,6 +104,12 @@ def remove_rows_with_bad_gps(rides):
 	rides = rides[(rides.dropoff_longitude < -71) & (rides.dropoff_longitude > -75) & (rides.dropoff_latitude > 38) & (rides.dropoff_latitude < 42)]
 	print "done."
 	return rides
+
+def remove_trips_invalid_profit(rides):
+	"""
+	Ignore rides that have profit of more than $150/hr
+	"""
+	return rides[rides.profit/(rides.trip_time_in_secs/(60.0*60.0)) < 150]
 
 def filter_data_to_region(rides):
 	"""
