@@ -11,11 +11,9 @@ COST_OF_TRAVEL_TIME_DOLLARS_HR = 42
 OVERALL_AVG_WAIT_TIME = 11.4*60 #In Seconds
 GOOD_POSITION_WAIT_TIME = 3*60 #In seconds
 
-DATA_DIR = "../../taxi-data/"
+#DATA_DIR = "../../taxi-data/"
 DATA_DIR = "./"
 TRAINING_DIR = DATA_DIR + "training/"
-
-#taxi_distance = pd.read_csv(DATA_DIR + "taxi_distance.csv", index_col = 0)
 
 def random_ride(rides, from_position, starting_hour):
     """
@@ -34,8 +32,6 @@ def random_ride(rides, from_position, starting_hour):
         distance_of_ride = choice['trip_distance'].values[0]
         
         profit = choice['profit'].values[0]
-        print "Gas price for distance = ", gas_price_for_distance(distance_of_ride)
-        print choice
         profit -= gas_price_for_distance(distance_of_ride)
         
 #         print "ending_pos",ending_pos
@@ -55,14 +51,15 @@ def better_position(starting_pos):
 
     Return the a list of positions that we think it would be worth to go to.
     """
-    expected_profit_incl_travel = expected_profit_for_good_locations.apply( 
-                            lambda z: z + time_and_gas_estimated_cost_function(z.name, starting_pos) , axis = 1)
-    
     if starting_pos not in expected_profit.index:
         return None
-        
+    
+    expected_profit_incl_travel = expected_profit_for_good_locations.apply( 
+                            lambda z: z + time_and_gas_estimated_cost_function(starting_pos,z.name) , axis = 1)
+            
     expected_profit_do_nothing = expected_profit.loc[starting_pos].values[0]
     
+    print "expected_profit_do_nothing=", expected_profit_do_nothing
     good_choices = expected_profit_incl_travel
     good_choices = good_choices[good_choices.profit > expected_profit_do_nothing ]
     if len(good_choices.index) > 0:
@@ -92,21 +89,27 @@ def time_and_gas_estimated_cost_function(starting_pos, to_position):
     
     dist, drive_time_in_sec = trip_time_and_distance(starting_pos, to_position)
         
-    if dist == None or drive_time_in_sec == None or dist > 1.5:
-        return -100
-    else:
-        #This is gas price + travel time.
-        return -1*(3.6*dist/29.0 + ((drive_time_in_sec/float(60*60))*COST_OF_TRAVEL_TIME_DOLLARS_HR))
+    if dist == None or drive_time_in_sec == None:
+        return -1000000
     
-def gas_price(start_pos, to_position):
-    s_long, s_lat = [float(z) for z in starting_pos[1:-1].split(",")]
-    d_long,d_lat = [float(z) for z in to_position[1:-1].split(",")]
-    dist = vincenty((d_lat, d_long), (s_lat, s_long), miles=True)
-
-    return 3.6*dist/29.0
-
+    if dist > 4:
+        return -1000000
+    
+    if drive_time_in_sec > 20*60:
+        return -1000000
+    
+    #This is gas price + travel time.
+    return -1*(3.6*dist/29.0 + ((drive_time_in_sec/float(60*60))*COST_OF_TRAVEL_TIME_DOLLARS_HR))
+    
 def gas_price_for_distance(dist):
     return 3.6*dist/29.0
+
+# def gas_price(start_pos, to_position):
+#     s_long, s_lat = [float(z) for z in starting_pos[1:-1].split(",")]
+#     d_long,d_lat = [float(z) for z in to_position[1:-1].split(",")]
+#     dist = vincenty((d_lat, d_long), (s_lat, s_long), miles=True)
+
+#     return 3.6*dist/29.0
 
 # def travel_time_in_seconds(starting_pos, to_position):
     
@@ -145,10 +148,10 @@ def simulate_informed_trajectory(rides, starting_position, starting_hour, max_tr
     while remaining_seconds > 0:
 
         #Pick a random ride.
-        print "Picking new random ride. Current profit = ", profit
+        #print "Picking new random ride. Current profit = ", profit
         ending_pos, added_profit, time_of_ride, distance_of_ride = random_ride(rides, current_pos, starting_hour)
         #ending_pos, added_profit, length_of_ride = random_ride(rides, current_pos, starting_hour)
-        print "Got added profit = ", added_profit
+        #print "Got added profit = ", added_profit
         profit += added_profit
         remaining_seconds -= time_of_ride
         
@@ -160,13 +163,10 @@ def simulate_informed_trajectory(rides, starting_position, starting_hour, max_tr
             if p != None:
                 print "Better Position \n\t" + reverse_geocode(ending_pos) + "\n\t" + reverse_geocode(p)
                 current_pos = p
-                drive_dist, drive_time_in_sec = trip_time_and_distance(ending_pos, p)
-                print "\tdrive_dist = ", drive_dist
-                print "\tdrive_time_in_sec", drive_time_in_sec
-                
+                drive_dist, drive_time_in_sec = trip_time_and_distance(ending_pos, p)                
                 #Update time remaining, and profit based on gas cost
                 remaining_seconds -= drive_time_in_sec
-                print "\tPrice of gas : ", gas_price_for_distance(drive_dist)
+                #print "\tPrice of gas : ", gas_price_for_distance(drive_dist)
                 profit -= gas_price_for_distance(drive_dist)
                 
                 print "\tProfit = ", profit
@@ -182,6 +182,7 @@ def simulate_informed_trajectory(rides, starting_position, starting_hour, max_tr
         remaining_seconds -= floor(random()*OVERALL_AVG_WAIT_TIME)
         print "Profit = ", profit
 
+    print "TOTAL PROFIT= ", profit
     return profit
 
 def reverse_geocode(pos):
@@ -197,29 +198,15 @@ def reverse_geocode(pos):
     else:
         return address
 
-def train(rides, wages):
+def train(rides):
     """
     Train the ML algorithm on the given dataset.
 
     Training data is saved in TRAINING_DIR, and loaded in the ML algorithm.
     """
-    #Identify good drivers
-    wages = wages[wages.hourly_wage<100]
-    wages = wages[(wages.percent_time_idle>5) & (wages.percent_time_idle<100)]
 
-    #Rate drivers as TOP and BOTTOM by percent idle time
-    top = wages[(wages.percent_time_idle > 3) & (wages.percent_time_idle < 10)]
-    bottom = wages[wages.percent_time_idle > 19]
-
-    #Clean data
-    bottom = bottom[(bottom.hourly_wage<150) & (bottom.hourly_wage>5)]
-    top = top[(top.hourly_wage<150) & (top.hourly_wage>5)]
-
-    top_drivers = top.hack_license.values
-    good_positions = locations_frequented_by_drivers(rides, top_drivers)
-
-    #X = rides.groupby('pos').size()
-    #good_positions = X[ X > X.quantile(.8)]
+    X = rides.groupby('pos').size()
+    good_positions = X[ X > X.quantile(.8)]
 
     good_positions.to_csv(TRAINING_DIR + "good_positions.csv")
     #Determine Expected Profit
@@ -227,6 +214,11 @@ def train(rides, wages):
     expected_profit = expected_profit[(expected_profit.profit < 200) & (expected_profit.profit > -5)]
     expected_profit = expected_profit.groupby('pos').mean()
     expected_profit.to_csv(TRAINING_DIR + "expected_profit.csv")
+    
+def random_nearby_position(pos):
+    """
+    Return a random nearby position
+    """
 
 if __name__ == "__main__":
     from helper_functions import *
