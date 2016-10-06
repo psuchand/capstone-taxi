@@ -85,8 +85,8 @@ def process_taxi_data(i):
 	##############################################
 	#Add Profit columns
 	rides['profit'] = rides['fare_amount'] + rides['tip_amount'] - 3.6*rides.trip_distance/29.0 - rides['tolls_amount']#$3.60/Gallon, 29 MPG
-
 	rides = remove_trips_invalid_profit(rides)
+
 	print("Numer of rows: %d"%len(rides.index))
 	return rides
 
@@ -301,7 +301,7 @@ if __name__ == "__main__":
 	rides_list = []
 	wages_list = []
 
-	for i in [1]:
+	for i in [1,2,3,4,5]:
 		rides = process_taxi_data(i)
 		rides = remove_rows_with_bad_gps(rides)
 		rides = filter_weekday_mornings(rides)
@@ -323,5 +323,5 @@ if __name__ == "__main__":
 	taxi_distance = calculate_trip_distances(rides)
 	taxi_distance.to_csv("taxi_distance.csv")
 
-	#wages = pd.concat(wages_list)
-	#wages.to_csv("wages.csv")
+	wages = pd.concat(wages_list)
+	wages.to_csv("wages.csv")

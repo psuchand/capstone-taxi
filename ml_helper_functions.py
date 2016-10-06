@@ -1,6 +1,7 @@
 from random import random
 from math import floor
 from vincenty import vincenty
+import pandas as pd
 
 PENALTY_PROFIT_BAD_POS = -8
 PENALTY_TIME_BAD_POS = 60*10
@@ -11,9 +12,10 @@ OVERALL_AVG_WAIT_TIME = 11.4*60 #In Seconds
 GOOD_POSITION_WAIT_TIME = 3*60 #In seconds
 
 DATA_DIR = "../../taxi-data/"
+DATA_DIR = "./"
 TRAINING_DIR = DATA_DIR + "training/"
 
-taxi_distance = pd.read_csv(TRAINING_DIR + "taxi_distance.csv", index_col = 0)
+#taxi_distance = pd.read_csv(DATA_DIR + "taxi_distance.csv", index_col = 0)
 
 def random_ride(rides, from_position, starting_hour):
     """
@@ -195,15 +197,29 @@ def reverse_geocode(pos):
     else:
         return address
 
-def train(rides):
+def train(rides, wages):
     """
     Train the ML algorithm on the given dataset.
 
     Training data is saved in TRAINING_DIR, and loaded in the ML algorithm.
     """
+    #Identify good drivers
+    wages = wages[wages.hourly_wage<100]
+    wages = wages[(wages.percent_time_idle>5) & (wages.percent_time_idle<100)]
 
-    X = rides.groupby('pos').size()
-    good_positions = X[ X > X.quantile(.8)]
+    #Rate drivers as TOP and BOTTOM by percent idle time
+    top = wages[(wages.percent_time_idle > 3) & (wages.percent_time_idle < 10)]
+    bottom = wages[wages.percent_time_idle > 19]
+
+    #Clean data
+    bottom = bottom[(bottom.hourly_wage<150) & (bottom.hourly_wage>5)]
+    top = top[(top.hourly_wage<150) & (top.hourly_wage>5)]
+
+    top_drivers = top.hack_license.values
+    good_positions = locations_frequented_by_drivers(rides, top_drivers)
+
+    #X = rides.groupby('pos').size()
+    #good_positions = X[ X > X.quantile(.8)]
 
     good_positions.to_csv(TRAINING_DIR + "good_positions.csv")
     #Determine Expected Profit
@@ -211,3 +227,13 @@ def train(rides):
     expected_profit = expected_profit[(expected_profit.profit < 200) & (expected_profit.profit > -5)]
     expected_profit = expected_profit.groupby('pos').mean()
     expected_profit.to_csv(TRAINING_DIR + "expected_profit.csv")
+
+if __name__ == "__main__":
+    from helper_functions import *
+    from pre_process import *
+    print "Reading data...",
+    rides = pd.read_csv(DATA_DIR + "rides.csv")
+    print "done."
+    print "Training...",
+    train(rides)
+    print "done."
