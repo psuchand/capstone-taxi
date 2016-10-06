@@ -198,7 +198,7 @@ def reverse_geocode(pos):
     else:
         return address
 
-def train(rides):
+def train(rides, output_dir):
     """
     Train the ML algorithm on the given dataset.
 
@@ -208,12 +208,12 @@ def train(rides):
     X = rides.groupby('pos').size()
     good_positions = X[ X > X.quantile(.8)]
 
-    good_positions.to_csv(TRAINING_DIR + "good_positions.csv")
+    good_positions.to_csv(output_dir + "good_positions.csv")
     #Determine Expected Profit
     expected_profit = rides[['pos','profit']]
     expected_profit = expected_profit[(expected_profit.profit < 200) & (expected_profit.profit > -5)]
     expected_profit = expected_profit.groupby('pos').mean()
-    expected_profit.to_csv(TRAINING_DIR + "expected_profit.csv")
+    expected_profit.to_csv(output_dir + "expected_profit.csv")
     
 def random_nearby_position(pos):
     """

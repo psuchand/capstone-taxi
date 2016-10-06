@@ -3,8 +3,8 @@ import pandas as pd
 import numpy as np
 import sys
 
-DATA_DIR = "./training/"
-output_file = DATA_DIR + "nyc_sectors.json"
+TRAINING_DIR = "./training/"
+output_file = TRAINING_DIR + "nyc_sectors.json"
 
 def make_shapefile_from_sectors(num_digits, rides):
     centers = list(set(rides.pos.values))
@@ -27,7 +27,7 @@ def make_shapefile_from_sectors(num_digits, rides):
         sys.stdout.flush()
 
     
-    json = FeatureCollection([features]).__str__()
+    json = FeatureCollection(features).__str__()
     
     output = open(output_file, "w")
     output.write(json)
@@ -37,7 +37,7 @@ if __name__ == "__main__":
 	
 	#Read the rides list
 	print "Reading data...",
-	rides = pd.read_csv(DATA_DIR + "rides.csv", index_col =0)
+	rides = pd.read_csv(TRAINING_DIR + "rides.csv", index_col =0)
 	print "done."
 	print "Making shapefile...",
 	make_shapefile_from_sectors(2,rides)
