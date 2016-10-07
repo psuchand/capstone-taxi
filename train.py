@@ -87,8 +87,11 @@ if __name__ == "__main__":
 	print "done."
 	print "Training...",
 
-	#This naive method of training produces good results. With a random strategy, riders
-	#make $83.347 from 9am-11am
+	#Pick one of the training methods below.
+	
+	#1.) Naive training via profit of location.
 	#train(rides, TRAINING_DIR)
+	
+	#2.) Training from habits of good drivers 
 	train_from_good_riders(rides, wages, TRAINING_DIR)
 	print "done."
