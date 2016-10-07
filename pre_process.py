@@ -301,7 +301,7 @@ if __name__ == "__main__":
 	rides_list = []
 	wages_list = []
 
-	for i in [1,2,3,4,5]:
+	for i in [2]:
 		rides = process_taxi_data(i)
 		rides = remove_rows_with_bad_gps(rides)
 		rides = filter_weekday_mornings(rides)

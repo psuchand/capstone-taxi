@@ -63,7 +63,7 @@ def plot_wage_for_drivers(drivers):
 #Minimum number of rides in a location, before it can be considered frequented
 MIN_CLUSTER = 5
 
-def frequented_pickup_locations(df):
+def frequented_pickup_locations(df, top_percent = .9):
     """
     Given a dataframe, return ordered pairs of
     the locations the most frequently occuring locations, as 
@@ -74,8 +74,8 @@ def frequented_pickup_locations(df):
     X = df[['pos']].groupby('pos').size()
     X = X[X > MIN_CLUSTER]
 
-    quantile = .9
-    upper_quantile = X.quantile(quantile)
+    #top_percent = .9
+    upper_quantile = X.quantile(top_percent)
     X = X[X >= upper_quantile]
 
     # X = pd.DataFrame()
@@ -96,7 +96,7 @@ def frequented_pickup_locations(df):
     
     return X
 
-def locations_frequented_by_drivers(df, drivers):
+def locations_frequented_by_drivers(df, drivers, top_percent = .9):
     """
     rides is the main dataset of all drivers.
     """
@@ -108,7 +108,7 @@ def locations_frequented_by_drivers(df, drivers):
     else:
         drivers_list = drivers.index
 
-    return frequented_pickup_locations(df[df.hack_license.isin(drivers_list)])
+    return frequented_pickup_locations(df[df.hack_license.isin(drivers_list)], top_percent=top_percent)
 
 #Locations frequented by most profitable cabbies
 
