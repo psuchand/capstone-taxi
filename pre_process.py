@@ -291,8 +291,16 @@ def calculate_trip_distances(rides):
 	taxi_distance.loc[["(-71.31, 41.50)","(-71.30, 41.50)"]]['trip_time_in_secs'].values[0]	"""
 
 	print "Calculating taxi distance...",
-	taxi_distance = rides[['pos','dropoff_pos', 'profit','trip_distance','trip_time_in_secs','tolls_amount']].groupby(['pos','dropoff_pos']).mean()
-	taxi_distance.dropna(inplace=True)
+	taxi_distance = rides[['pos','dropoff_pos', 'profit','trip_distance','trip_time_in_secs','tolls_amount']]
+	taxi_distance = taxi_distance.dropna()
+
+	taxi_distance = taxi_distance[taxi_distance.trip_time_in_secs > 60]
+	taxi_distance = taxi_distance[taxi_distance.trip_distance/(taxi_distance.trip_time_in_secs/(float(60*60))) < 60]
+	taxi_distance = taxi_distance.dropna()
+
+	taxi_distance = taxi_distance.groupby(['pos','dropoff_pos']).median()
+
+	print taxi_distance.trip_time_in_secs
 	print "done."
 	return taxi_distance
 
@@ -301,12 +309,12 @@ if __name__ == "__main__":
 	rides_list = []
 	wages_list = []
 
-	for i in [2]:
+	for i in [1,2]:
 		rides = process_taxi_data(i)
 		rides = remove_rows_with_bad_gps(rides)
 		rides = filter_weekday_mornings(rides)
-		rides = add_pos_column(rides, num_digits=2)
-		rides = add_dropoff_pos_column(rides, num_digits=2)
+		rides = add_pos_column(rides, num_digits=4)
+		rides = add_dropoff_pos_column(rides, num_digits=4)
 
 		wages = hourly_wage_df(rides)
 		wages = cleanup_column_names(wages)
@@ -319,9 +327,6 @@ if __name__ == "__main__":
 
 	rides = pd.concat(rides_list)
 	rides.to_csv("rides.csv")
-
-	taxi_distance = calculate_trip_distances(rides)
-	taxi_distance.to_csv("taxi_distance.csv")
 
 	wages = pd.concat(wages_list)
 	wages.to_csv("wages.csv")

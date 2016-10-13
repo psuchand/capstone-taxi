@@ -165,7 +165,7 @@ def simulate_informed_trajectory(rides, starting_position, starting_hour, max_tr
             #Would informed drivers make a different choice?
             p =  better_position(ending_pos)
             if p != None:
-                print "\tBetter Position \n\t" + reverse_geocode(ending_pos) + "\n\t" + reverse_geocode(p)
+                print "\tBetter Position \n\t" + "Swapping: " + reverse_geocode(ending_pos) + "\n\tWith: " + reverse_geocode(p)
                 current_pos = p
                 drive_dist, drive_time_in_sec = trip_time_and_distance(ending_pos, p)                
                 #Update time remaining, and profit based on gas cost
@@ -173,7 +173,7 @@ def simulate_informed_trajectory(rides, starting_position, starting_hour, max_tr
                 #print "\tPrice of gas : ", gas_price_for_distance(drive_dist)
                 profit -= gas_price_for_distance(drive_dist)
                 
-                print "\tProfit = ", profit
+                #print "\tProfit = ", profit
                 #Model wait time at new position.
                 trip_length_in_seconds += floor(random()*GOOD_POSITION_WAIT_TIME)
 
@@ -194,7 +194,6 @@ def reverse_geocode(pos):
     """
     Given a longitude, latitude pair, reverse geocode and print it.
     """
-    return "Skip geocoding" + str(pos)
     lon, lat = [float(z) for z in pos.strip().replace("(", "").replace(")","").split(",")]
     address = geocoder.google([lat, lon], method='reverse').address
     

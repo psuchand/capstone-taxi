@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import sys
 
+DATA_DIR = "./"
 TRAINING_DIR = "./training/"
 output_file = TRAINING_DIR + "nyc_sectors.json"
 
@@ -37,8 +38,8 @@ if __name__ == "__main__":
 	
 	#Read the rides list
 	print "Reading data...",
-	rides = pd.read_csv(TRAINING_DIR + "rides.csv", index_col =0)
+	rides = pd.read_csv(DATA_DIR + "rides.csv", index_col =0)
 	print "done."
 	print "Making shapefile...",
-	make_shapefile_from_sectors(2,rides)
+	make_shapefile_from_sectors(4,rides)
 	print "done."

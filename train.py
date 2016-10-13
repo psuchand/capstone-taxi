@@ -79,16 +79,22 @@ def train_from_good_riders(rides, wages, output_dir):
     expected_profit.to_csv(TRAINING_DIR + "expected_profit.csv")
 
 
+
+
 if __name__ == "__main__":
 	print "This function trains the ML model based on rides.csv. Output is in " + TRAINING_DIR + "\n"
 	print "Reading data...",
 	rides = pd.read_csv(TRAINING_DIR + "rides.csv")
 	wages = pd.read_csv(TRAINING_DIR + "wages.csv")
+
+	taxi_distance = calculate_trip_distances(rides)
+	taxi_distance.to_csv(TRAINING_DIR + "taxi_distance.csv")
+
 	print "done."
 	print "Training...",
 
 	#Pick one of the training methods below.
-	
+
 	#1.) Naive training via profit of location.
 	#train(rides, TRAINING_DIR)
 	
