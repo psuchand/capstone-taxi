@@ -1,9 +1,23 @@
 # Analysis of NYC Taxi Data
 In this project, we analyze NYC Yellow Cab data to help drivers operate more efficiently. For a description of the analysis see 
 
-https://rocky-plains-26026.herokuapp.com/jackson-heights
+The algorithm is trained in train.py, execute by first pre-processing the data,
+
+python pre_process.py
+
+then training by
+
+python train.py
+
+You can test the algorithm by running simulations from the iPython notebook ml-test
+
+Analysis will be available here
+
+https://rocky-plains-26026.herokuapp.com/
 
 ### Download data
+To use these files, you will need to download NYC Yellow cab data.
+
 Download the links below (replace the number 1 with an integer 1-9):
 https://nyctaxitrips.blob.core.windows.net/data/trip_data_1.csv.zip
 https://nyctaxitrips.blob.core.windows.net/data/trip_fare_1.csv.zip
