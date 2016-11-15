@@ -19,10 +19,7 @@ then training by
 python train.py
 ```
 
-You can test the algorithm by running simulations from the iPython notebook ml-test
-
-Analysis is available here
-https://nyc-taxi-capstone.herokuapp.com
+Finally, you can test the algorithm by running simulations from the iPython notebook ml-test, or examine the results at https://nyc-taxi-capstone.herokuapp.com
 
 ### Download data
 To use these files, you will need to download NYC Yellow cab data.
