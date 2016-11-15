@@ -5,7 +5,7 @@ html/
 *.pyc
 .*
 selection_histogram.py
-.ipynb_checkpoints
+.ipynb_checkpoints/
 .gitignore~
 prula.py
 prula.pyc
