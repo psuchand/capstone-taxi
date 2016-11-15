@@ -70,24 +70,11 @@ def frequented_pickup_locations(df, top_percent = .9):
     determined by the given quantile.
     """
     
-    print("frequented_pickup_locations")
     X = df[['pos']].groupby('pos').size()
     X = X[X > MIN_CLUSTER]
 
-    #top_percent = .9
     upper_quantile = X.quantile(top_percent)
     X = X[X >= upper_quantile]
-
-    # X = pd.DataFrame()
-    # X['pos'] = df['pos']
-    
-    # X = X[X.groupby('pos').pos.transform(len) > MIN_CLUSTER]
-    
-    # gb = X.groupby('pos').size()
-    
-    # quantile = .9
-    # upper_quantile = gb.quantile(quantile)
-    # gb = gb[gb >= upper_quantile]
 
     #Print statistics
     print("Statistics for table. X = position frequented by driver, Y = #pickups.")
@@ -98,7 +85,8 @@ def frequented_pickup_locations(df, top_percent = .9):
 
 def locations_frequented_by_drivers(df, drivers, top_percent = .9):
     """
-    rides is the main dataset of all drivers.
+    This function determines locations frequented by the given top_percent of drivers.
+    rides is the main dataset of all drivers. 
     """
     import numpy as np
 
@@ -109,8 +97,6 @@ def locations_frequented_by_drivers(df, drivers, top_percent = .9):
         drivers_list = drivers.index
 
     return frequented_pickup_locations(df[df.hack_license.isin(drivers_list)], top_percent=top_percent)
-
-#Locations frequented by most profitable cabbies
 
 def locations_frequented_by_most_profitable_cabbies(df):
     """
@@ -136,10 +122,14 @@ def locations_frequented_by_least_profitable_cabbies(df):
 
 def percent_fares_from_given_positions(X, good_positions):
     """
-    df is a dataframe with keys
+    This function determines the percent of a given driver's fares come from the given
+    collection of good positions.
+
+    Details:
+    X is a dataframe with keys
     hack_license, pickup_longitude, pickup_latitude
-    
-    This function does NOT round gps coordinates.
+
+    This function does NOT round gps coordinates before processing.
     """
     
     df = X[['hack_license', 'pos']]
@@ -149,7 +139,7 @@ def percent_fares_from_given_positions(X, good_positions):
     del df['level_1']
     return df.groupby('hack_license').apply(lambda z: z.mean())
 
-#Data cleanup
+#A threshold value used for data cleanup
 MIN_PICKUPS = 1
 
 def cleanup(df):
@@ -243,20 +233,8 @@ def plot_points(coords):
     my_map.readshapefile(DATA_DIR + r"gadm-us/NewYork-shp/shape/roads", "osm-nyc")
     my_map.plot(longs, lats, 'ro', markersize = 10, alpha = 1, label = "Positions with least waiting time (<= 1 min)")
     
-    # for i in xrange(len(longs)):
-    #     if (not all 
-    #         ([
-    #                 top_positions.iloc[i].pos[0] >= llcrnrlon,
-    #                 top_positions.iloc[i].pos[1] >= llcrnrlat,
-    #                 top_positions.iloc[i].pos[0] <= urcrnrlon,
-    #                 top_positions.iloc[i].pos[1] <= urcrnrlat
-    #         ])):
-    #         continue
-    #     plt.text(longs[i], lats[i], str(top_positions.iloc[i].wait_time))
-    
     plt.legend(fontsize = 'xx-large')
     plt.title("Locations for Taxi drivers to pick up customers with least waiting time (near 106th and Broadway)")
-    #plt.figure(figsize=(40,30))
     plt.show
 
 from bokeh.io import output_file, show
@@ -264,28 +242,26 @@ from bokeh.models import (GMapPlot, GMapOptions, ColumnDataSource, Circle, DataR
 )
 
 def coord_from_string(coord_string):
-            """
-            Coordinates are encoded as strings, convert 
-            back to coordinates.
-            """
-            s = coord_string
+    """
+    Coordinates are encoded as strings, convert 
+    back to coordinates.
+    """
+    s = coord_string
 
-            try:
-                return [float(z) for z in s]
-            except Exception, e:
-                replace = list("(,)\'\"")
-                for t in replace:
-                    s = s.replace(t, " ")
+    try:
+        return [float(z) for z in s]
+    except Exception, e:
+        replace = list("(,)\'\"")
+        for t in replace:
+            s = s.replace(t, " ")
 
-                return [float(z) for z in s.strip().split()]
+        return [float(z) for z in s.strip().split()]
 
 def extract_longs_lats(coords):
     """
     Convert coordinates as above to a list of 
     longitude, latitude pairs.
     """
-
-
     a = np.array([coord_from_string(z) for z in coords])
     a = a.transpose()
     
@@ -306,13 +282,6 @@ def plot_points_gmaps(coords_blue, coords_red, filename = "gmap_plot.html"):
         """
 
         longs, lats = extract_longs_lats(coords)
-
-        #Old code
-        # a = np.array([coord_from_string(z) for z in coords])
-        # a = a.transpose()
-        
-        # longs = a[0]
-        # lats = a[1]
         
         return ColumnDataSource(
             data= dict(        
@@ -346,9 +315,9 @@ def plot_points_gmaps(coords_blue, coords_red, filename = "gmap_plot.html"):
 MAX_BREAK = 3
 
 def hourly_wage_df(rides):
-    """Calculate an hourly wage for each driver
     """
-    #Load data, make sure it is in chronological order
+    Calculate an hourly wage for each driver
+    """
     #Load data, make sure it is in chronological order
     wage = rides.loc[:,('hack_license','pickup_datetime')]
 

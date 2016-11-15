@@ -11,6 +11,7 @@ COST_OF_TRAVEL_TIME_DOLLARS_HR = 42
 OVERALL_AVG_WAIT_TIME = 11.4*60 #In Seconds
 GOOD_POSITION_WAIT_TIME = 3*60 #In seconds
 
+#Data is downloaded into this directory. The line below is frequently uncommented (depending on the computer that this code is run on). 
 #DATA_DIR = "../../taxi-data/"
 DATA_DIR = "./"
 TRAINING_DIR = DATA_DIR + "training/"
@@ -34,12 +35,6 @@ def random_ride(rides, from_position, starting_hour):
         
         profit = choice['profit'].values[0]
         profit -= gas_price_for_distance(distance_of_ride)
-        
-#         print "ending_pos",ending_pos
-#         print "time_of_ride",time_of_ride
-#         print "distance_of_ride",distance_of_ride
-#         print "profit",profit
-
 
         return ending_pos, profit, time_of_ride, distance_of_ride
     except Exception:
@@ -66,7 +61,7 @@ def better_position(starting_pos):
         print "\texpected_profit do_nothing=%.2f, move=%.2f"%(expected_profit_do_nothing,expected_profit.loc[good_choices.profit.argmax()].values[0])
         return good_choices.profit.argmax()
         
-        #Another option is to sample randomly
+        #Another option is to sample randomly, eg as below
         #return good_choices.sample(1).index.values[0]
     else:
         return None
@@ -105,21 +100,6 @@ def time_and_gas_estimated_cost_function(starting_pos, to_position):
 def gas_price_for_distance(dist):
     return 3.6*dist/29.0
 
-# def gas_price(start_pos, to_position):
-#     s_long, s_lat = [float(z) for z in starting_pos[1:-1].split(",")]
-#     d_long,d_lat = [float(z) for z in to_position[1:-1].split(",")]
-#     dist = vincenty((d_lat, d_long), (s_lat, s_long), miles=True)
-
-#     return 3.6*dist/29.0
-
-# def travel_time_in_seconds(starting_pos, to_position):
-    
-#     s_long, s_lat = [float(z) for z in starting_pos[1:-1].split(",")]
-#     d_long,d_lat = [float(z) for z in to_position[1:-1].split(",")]
-#     dist = vincenty((d_lat, d_long), (s_lat, s_long), miles=True)
-    
-#     return dist/float(DRIVING_SPEED_IN_MPH)
-
 def simulate_naive_trajectory(rides, starting_position, starting_hour, max_trip_length_seconds):
     """
     Simulate the naive strategy of just doing a pickup wherever you are. 
@@ -152,17 +132,14 @@ def simulate_informed_trajectory(rides, starting_position, starting_hour, max_tr
     while trip_length_in_seconds < max_trip_length_seconds:
 
         #Pick a random ride.
-        #print "Picking new random ride. Current profit = ", profit
         ending_pos, added_profit, time_of_ride, distance_of_ride = random_ride(rides, current_pos, starting_hour)
-        #ending_pos, added_profit, length_of_ride = random_ride(rides, current_pos, starting_hour)
-        #print "Got added profit = ", added_profit
         profit += added_profit
         trip_length_in_seconds += time_of_ride
         
         print "-",
         
         if ending_pos != None:
-            #Would informed drivers make a different choice?
+            #Here, we determine if informed drivers make a different choice.
             p =  better_position(ending_pos)
             if p != None:
                 print "\tBetter Position \n\t" + "Swapping: " + reverse_geocode(ending_pos) + "\n\tWith: " + reverse_geocode(p)
@@ -170,13 +147,11 @@ def simulate_informed_trajectory(rides, starting_position, starting_hour, max_tr
                 drive_dist, drive_time_in_sec = trip_time_and_distance(ending_pos, p)                
                 #Update time remaining, and profit based on gas cost
                 trip_length_in_seconds += drive_time_in_sec
-                #print "\tPrice of gas : ", gas_price_for_distance(drive_dist)
                 profit -= gas_price_for_distance(drive_dist)
                 
-                #print "\tProfit = ", profit
-                #Model wait time at new position.
                 trip_length_in_seconds += floor(random()*GOOD_POSITION_WAIT_TIME)
 
+                #Uncomment for more detailed progress indicator.
                 #print "*",
                 print "\tTrying better position: %.2f minutes lost."%(float(drive_time_in_sec)/(60.0))
                 continue
@@ -184,7 +159,6 @@ def simulate_informed_trajectory(rides, starting_position, starting_hour, max_tr
             current_pos = ending_pos
             
         trip_length_in_seconds += floor(random()*OVERALL_AVG_WAIT_TIME)
-        #print "Profit = ", profit
 
     hourly_salary = float(profit)/float(trip_length_in_seconds/(60.0*60.0))
     print "Hourly salary: %.2f"%hourly_salary
@@ -201,8 +175,3 @@ def reverse_geocode(pos):
         return ""
     else:
         return address
-    
-def random_nearby_position(pos):
-    """
-    Return a random nearby position
-    """

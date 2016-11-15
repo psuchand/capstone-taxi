@@ -8,6 +8,10 @@ TRAINING_DIR = "./training/"
 output_file = TRAINING_DIR + "nyc_sectors.json"
 
 def make_shapefile_from_sectors(num_digits, rides):
+    """
+    Given a collection of centers, construct a shapefile.
+    """
+
     centers = list(set(rides.pos.values))
     
     def shape_for_center(center, num_digits):

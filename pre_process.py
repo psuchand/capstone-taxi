@@ -40,9 +40,6 @@ def process_taxi_data(i):
 		df = cleanup_column_names(df)
 		trip_data.append(df)
 
-	# trip_data_1 = pd.read_csv(DATA_DIR + "trip_data_1.csv.zip", usecols = trip_data_cols)#, nrows=10000)
-	# trip_data_2 = pd.read_csv(DATA_DIR + "trip_data_2.csv.zip", usecols = trip_data_cols)#, nrows=10000)
-
 	trip_data = pd.concat(trip_data)
 	
 	trip_fare = []
@@ -55,18 +52,7 @@ def process_taxi_data(i):
 
 	print("Done reading data.")
 
-	# trip_fare_1 = pd.read_csv(DATA_DIR + "trip_fare_1.csv.zip", usecols = trip_fare_cols)#, nrows=100000)
-	# trip_fare_2 = pd.read_csv(DATA_DIR + "trip_fare_2.csv.zip", usecols = trip_fare_cols)#, nrows=100000)
-
 	trip_fare = pd.concat(trip_fare)
-
-	#trip_fare.columns = [z.strip() for z in trip_fare.columns]
-
-	#delete old data
-	# del trip_data_1
-	# del trip_data_2
-	# del trip_fare_1
-	# del trip_fare_2
 
 	#Parse datetime columns
 	datetime_cols = ['pickup_datetime', ' pickup_datetime', 'dropoff_datetime']
@@ -79,8 +65,8 @@ def process_taxi_data(i):
 	rides = pd.merge(trip_data,trip_fare, on=['hack_license','pickup_datetime'])
 
 	#Reclaim memory
-	#del trip_data
-	#del trip_fare
+	del trip_data
+	del trip_fare
 
 	##############################################
 	#Add Profit columns
@@ -116,6 +102,8 @@ def filter_data_to_region(rides):
 	Filter data to lie within a certain region.
 	"""
 	print ("Filtering data to region.")
+
+	#YOU CAN UNCOMMENT ONE OF THE REGIONS BELOW.
 
 	#New york
 	# llcrnrlat=    40.491553
@@ -213,7 +201,6 @@ def add_pos_column(rides, delete_old_columns = False, num_digits=3, multiplier=1
 		del rides['pickup_latitude']
 		del rides['pickup_longitude']
 
-	#rides.loc[:,('pos')] = rides.pos.apply(lambda s: s.replace("\'",""))
 	rides = rides[rides.pos != "(0.0000, 0.0000)"]
 	rides = rides[rides.pos != "(0.000, 0.000)"]
 	rides = rides[rides.pos != "(0.00, 0.00)"]
@@ -236,7 +223,6 @@ def add_dropoff_pos_column(rides, delete_old_columns = False, num_digits=3, mult
 		del rides['dropoff_latitude']
 		del rides['dropoff_longitude']
 
-	#rides.loc[:,('pos')] = rides.pos.apply(lambda s: s.replace("\'",""))
 	rides = rides[rides.dropoff_pos != "(0.0000, 0.0000)"]
 	rides = rides[rides.dropoff_pos != "(0.000, 0.000)"]
 	rides = rides[rides.dropoff_pos != "(0.00, 0.00)"]
@@ -288,7 +274,8 @@ def calculate_trip_distances(rides):
 
 	or to determine time use this
 
-	taxi_distance.loc[["(-71.31, 41.50)","(-71.30, 41.50)"]]['trip_time_in_secs'].values[0]	"""
+	taxi_distance.loc[["(-71.31, 41.50)","(-71.30, 41.50)"]]['trip_time_in_secs'].values[0]	
+	"""
 
 	print "Calculating taxi distance...",
 	taxi_distance = rides[['pos','dropoff_pos', 'profit','trip_distance','trip_time_in_secs','tolls_amount']]
@@ -321,9 +308,6 @@ if __name__ == "__main__":
 
 		rides_list.append(rides)
 		wages_list.append(wages)
-
-		#rides.to_csv("rides"+str(i) + ".csv")
-		#wages.to_csv("wages"+str(i) + ".csv")
 
 	rides = pd.concat(rides_list)
 	rides.to_csv("rides.csv")

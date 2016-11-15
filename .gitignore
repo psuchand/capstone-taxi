@@ -2,3 +2,6 @@
 notebooks/
 html/
 *~
+*.pyc
+.*
+selection_histogram.py
