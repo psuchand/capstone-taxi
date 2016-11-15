@@ -4,3 +4,4 @@ html/
 *~
 *.pyc
 .*
+selection_histogram.py
