@@ -9,11 +9,15 @@ You can analyze the results in more detail by looking at the notebook ml-test.ip
 
 The algorithm is trained in train.py, execute by first pre-processing the data,
 
+```
 python pre_process.py
+```
 
 then training by
 
+```
 python train.py
+```
 
 You can test the algorithm by running simulations from the iPython notebook ml-test
 
@@ -24,21 +28,25 @@ https://nyc-taxi-capstone.herokuapp.com
 To use these files, you will need to download NYC Yellow cab data.
 
 Download the links below (replace the number 1 with an integer 1-9):
+
 https://nyctaxitrips.blob.core.windows.net/data/trip_data_1.csv.zip
 https://nyctaxitrips.blob.core.windows.net/data/trip_fare_1.csv.zip
 
 or use the bash script
 
+```
 for i in `seq 1 10`;
 do
    wget https://nyctaxitrips.blob.core.windows.net/data/trip_data_$i.csv.zip ;
 done
+```
 
-
+```
 for i in `seq 1 10`; 
 do 
    wget https://nyctaxitrips.blob.core.windows.net/data/trip_fare_$i.csv.zip ; 
 done
+```
 
 ### Pre process data
 
